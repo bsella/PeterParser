@@ -1,0 +1,2 @@
+pi=3.1415926;
+(sin lerp (pi/2) pi .5) * hypot 1 1
