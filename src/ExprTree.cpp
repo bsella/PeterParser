@@ -6,23 +6,23 @@ ExprTree::ExprTree(const char* str){
 	auto rpnDeque=RPN(str);
 	if(rpnDeque.empty())
 		throw InvalidExpr();
-	int v = rpnDeque.back().variables; //Je sais, c'est pas bien de faire ça
+	int v = rpnDeque.back().nbParam; //Je sais, c'est pas bien de faire ça
 	token= new ExprToken(rpnDeque.back().strToken);
-	token->variables=v;
+	token->nbParam=v;
 	rpnDeque.pop_back();
 	if(!token->number)
-		for(int i=0; i< token->variables; i++)
+		for(int i=0; i< token->nbParam; i++)
 			next.push_back( new ExprTree(rpnDeque));
 }
-ExprTree::ExprTree(std::deque<ExprToken>& rpn) throw (InvalidExpr){
+ExprTree::ExprTree(std::deque<ExprToken>& rpn){
 	if(rpn.empty())
 		throw InvalidExpr();
-	int v= rpn.back().variables;
+	int v= rpn.back().nbParam;
 	token= new ExprToken(rpn.back().strToken);
-	token->variables=v;
+	token->nbParam=v;
 	rpn.pop_back();
 	if(!token->number)
-		for(int i=0; i< token->variables; i++)
+		for(int i=0; i< token->nbParam; i++)
 			next.push_back( new ExprTree(rpn));
 }
 

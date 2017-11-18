@@ -40,7 +40,7 @@ protected:
 		std::string strToken;
 		bool number;
 		int prio;
-		int variables;
+		int nbParam;
 	};
 
 	/**Cette méthode prend une liste de chaines de caractères et

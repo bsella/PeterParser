@@ -13,14 +13,14 @@ Expr::ExprToken::ExprToken(const std::string& t):strToken(t){
 	prio=0;
 	for(auto i : {"-","+","/","*","(",")"})
 		if (strToken==i){
-			variables=2;
+			nbParam=2;
 			is_operator=true;
 			break;
 		}
 	if(!is_operator)
 		for(auto it : {"sin","cos","tan","sqrt","exp","log"})
 			if (strToken==it){
-				variables=1;
+				nbParam=1;
 				is_operator=true;
 				prio=3;
 				break;
@@ -28,23 +28,21 @@ Expr::ExprToken::ExprToken(const std::string& t):strToken(t){
 	if(!is_operator)
 		for(auto it : {"pow","hypot"})
 			if (strToken==it){
-				variables=2;
+				nbParam=2;
 				is_operator=true;
 				prio=3;
 				break;
 			}
 	if(!is_operator)
 		if (strToken=="lerp"){
-			variables=3;
+			nbParam=3;
 			is_operator=true;
 			prio=3;
 		}
 		else if(strToken=="polynome"){
-			variables=-1;
 			is_operator=true;
 			prio=3;
 		}
-
 
 	number= is_number(strToken);
 	//renvoyer une exception si le token n'est ni nombre ni opérateur
@@ -64,7 +62,7 @@ float Expr::eval()const{
 			evalStack.push(rpnDequeCopy.front());
 		else{
 			std::vector<float> vars;
-			for(int i=0; i<rpnDequeCopy.front().variables; i++){
+			for(int i=0; i<rpnDequeCopy.front().nbParam; i++){
 				vars.insert(vars.begin(),std::atof(evalStack.top().strToken.c_str()));
 				evalStack.pop();
 			}
@@ -98,7 +96,7 @@ std::deque<Expr::ExprToken> Expr::RPN(std::string str)const{
 				opStack.pop();
 			}else if (*s=="polynome"){
 				s++;
-				exprToken.variables=std::stoi(*s)+2;
+				exprToken.nbParam=std::stoi(*s)+2;
 				opStack.push(exprToken);
 			}else{
 				while(!opStack.empty() && opStack.top().prio>exprToken.prio){
@@ -138,7 +136,7 @@ const std::map<std::string, std::function<float(std::vector<float>)>> Expr::envF
 	{"sqrt",[](std::vector<float> v){if(v.size()!=1)throw InvalidExpr(); return std::sqrt(v[0]);}},
 	{"log",[](std::vector<float> v){if(v.size()!=1)throw InvalidExpr(); return std::log(v[0]);}},
 	{"exp",[](std::vector<float> v){if(v.size()!=1)throw InvalidExpr(); return std::exp(v[0]);}},
-	{"pow",[](std::vector<float> v){if(v.size()!=2)throw InvalidExpr(); return std::pow(v[1],v[0]);}},
+	{"pow",[](std::vector<float> v){if(v.size()!=2)throw InvalidExpr(); return std::pow(v[0],v[1]);}},
 	{"hypot",[](std::vector<float> v){if(v.size()!=2)throw InvalidExpr(); return std::sqrt(v[1]*v[1]+v[0]*v[0]);}},
 	{"lerp",[](std::vector<float> v){
 		if(v.size()!=3 ||v[2]>1||v[2]<0) throw InvalidExpr();

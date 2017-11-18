@@ -19,7 +19,7 @@ public:
 	// void print();
 private:
 	/**Constructeur récurcif*/
-	ExprTree(std::deque<ExprToken>& rpnDeque) throw (InvalidExpr);
+	ExprTree(std::deque<ExprToken>& rpnDeque);
 	
 	/**Retoune la valeur de l'expression (récursif)*/
 	float evalTree()const;
