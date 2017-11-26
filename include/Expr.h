@@ -1,14 +1,8 @@
 #ifndef EXPR_H
 #define EXPR_H value
 
-#include <string>
-#include <vector>
-#include <deque>
-#include <stack>
 #include <iostream>
 #include <sstream>
-#include <algorithm>
-#include <map>
 #include <regex>
 
 /**Exception renvoyée par les méthodes de la classe Expr en cas
@@ -37,6 +31,7 @@ protected:
 		-Une chaine de caractères qui représente l'expression*/
 	struct ExprToken{
 		ExprToken(const std::string& t);
+		ExprToken(const ExprToken& token);
 		std::string strToken;
 		bool number;
 		int prio;

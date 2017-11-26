@@ -3,17 +3,14 @@
 
 #include "Expr.h"
 #include "ExprTree.h"
-#include <map>
-#include <string>
-#include <vector>
 #include <iostream>
 #include <fstream>
-#include <cmath>
 #include <regex>
 
 /**Exception renvoyée lors de l'execution au cas ou une
 variable a été utilisée sans initialisation*/
 class UndefinedVar{};
+class TooFewArguments{};
 
 /**Programme composé d'une suite d'instructions*/
 class Program{
@@ -30,24 +27,27 @@ private:
 	affecter une valeur à une variable et/ou afficher le
 	resultat*/
 	struct Instruction{
-		Instruction(const std::string t);
+		Instruction(const std::string& t);
 		bool semi=false;
-		std::string lvalue="";
+		bool fDef=false;
+		std::vector<std::string> lvalue;
 		std::string expr;
 	};
 	/**Liste d'instructions à executer*/
 	std::vector<Instruction> instructions;
 
 	/**Execution d'une instruction*/
-	void execute(Instruction inst) throw (UndefinedVar);
+	void execute(Instruction inst);
 
 	/**Environnement qui associe le nom d'une variable à
 	un nombre (réel)*/
 	std::map<const std::string, float> envVar;
-	/**Environnement qui associe le nom d'une fonction qui
-	prend des paramètres à son implémentation*/
-	std::map<const std::string, std::function<float(std::vector<float>)>> envFun;
-	
+
+	void replaceFunc(std::string& expr);
+	bool replaceVars(std::string& expr,const std::vector<std::string>& ignore);
+
+	std::map<const std::string,
+			 std::pair<std::vector<std::string>,std::string>> envFun;
 };
 /**Recevoir des chaines de caractères et les transormer
 en instructions du programme. Ces chaines de caractères

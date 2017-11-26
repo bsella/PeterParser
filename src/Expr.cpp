@@ -33,7 +33,7 @@ Expr::ExprToken::ExprToken(const std::string& t):strToken(t){
 				prio=3;
 				break;
 			}
-	if(!is_operator)
+	if(!is_operator){
 		if (strToken=="lerp"){
 			nbParam=3;
 			is_operator=true;
@@ -43,15 +43,23 @@ Expr::ExprToken::ExprToken(const std::string& t):strToken(t){
 			is_operator=true;
 			prio=3;
 		}
+	}
 
 	number= is_number(strToken);
 	//renvoyer une exception si le token n'est ni nombre ni opérateur
 	if(!number && !is_operator) throw InvalidExpr();
-	
+
 	if(strToken=="*" || strToken=="/")
 		prio=2;
 	else if(strToken=="+" || strToken=="-")
 		prio=1;
+}
+
+Expr::ExprToken::ExprToken(const ExprToken& token){
+	this->prio= token.prio;
+	this->strToken= token.strToken;
+	this->nbParam= token.nbParam;
+	this->number= token.number;
 }
 
 float Expr::eval()const{
@@ -145,7 +153,7 @@ const std::map<std::string, std::function<float(std::vector<float>)>> Expr::envF
 	{"polynome",[](std::vector<float> v){
 		if(v.size()<2)throw InvalidExpr();
 		float sum=0;
-		for(int i=0; i<v.size()-1; i++)
+		for(unsigned i=0; i<v.size()-1; i++)
 			sum+=v[i]*std::pow(v[v.size()-1],i);
 		return sum;}}
 };

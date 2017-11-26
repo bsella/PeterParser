@@ -1,16 +1,17 @@
 #include "parser.h"
+#include <iostream>
 
-bool is_number(const std::string text){
-	std::regex rgx("\\-?"+number);
-	return std::regex_search(text,rgx);
-}
-
+std::regex integer("[0-9]+");
 std::regex op("[\\+\\*\\/\\-]");
 std::regex f1("sin|cos|tan|sqrt|exp|log");
 std::regex f2("pow|hypot");
 std::regex f3("lerp");
-std::regex integer("[0-9]+");
+
 std::smatch match;
+
+bool is_number(const std::string& text){
+	return std::regex_search(text,std::regex("\\-?"+number));
+}
 
 //vérifier si l'expression est valide
 static bool is_valid(std::vector<std::string>& text, bool parenthensis, int lookingFor){
@@ -26,14 +27,14 @@ static bool is_valid(std::vector<std::string>& text, bool parenthensis, int look
 	else if(top=="polynome"){
 		if(text.empty() || !regex_search(text.front(),integer)) return false;//n=le paramètre qui suit "polynome"
 		return is_valid(text,parenthensis,lookingFor+std::stoi(text.front())+2);//on cherche n+2 paramètres de plus après
-	}
-	return false;//sinon l'expression n'est pas valide
+	}return false;//sinon l'expression n'est pas valide
 }
 
-bool is_valid(std::string text){
+bool is_valid(const std::string& text){
 	std::vector<std::string> tokens = separate(text);
 	return is_valid(tokens, false, 1);
 }
+
 std::vector<std::string> separate(std::string text){
 	std::vector<std::string> ret;
 	std::regex rgx(space+"("+number+"|"+operators+"|"+func+"|"+var+")");
@@ -44,53 +45,66 @@ std::vector<std::string> separate(std::string text){
 	return ret;
 }
 
-bool semiAtEnd(const std::string text){
-	std::regex rgx(".*;"+space);
-	return std::regex_search(text,rgx);
+bool semiAtEnd(const std::string& text){
+	return std::regex_search(text,std::regex(".*;"+space));
 }
 
-bool defVar(const std::string text, std::string& lvalue, std::string& expr){
-	std::regex rgx(space+"("+var+")"+space+"=(.*)");
-	if(std::regex_search(text,match,rgx)){
+bool defVar(const std::string& text, std::string& lvalue, std::string& expr){
+	if(std::regex_search(text,match,std::regex(space+"("+var+")"+space+"="))){
 		lvalue=match[1];
-		expr=match[2];
+		expr=match.suffix();
 		return true;
 	}
 	return false;
 }
 
-bool defFun(const std::string text, std::vector<std::string>& inst){
-	std::regex rgxFun(space+"("+var+")"+space+"\\((.*)\\)"+space+"="+space+"(.*)");
-	std::string vars, expr;
-	if(std::regex_search(text,match,rgxFun)){
-		inst.push_back(match[1]);
-		vars=match[2];
-		expr=match[3];
+bool defFun(const std::string& text, std::vector<std::string>& params, std::string& expr){
+	std::string vars;
+	if(std::regex_search(text,match,std::regex(space+"(.+)"+space+"="+space+"(.*)"))){
+		vars=match[1];
+		expr=match[2];
 	}else return false;
-	std::regex rgxVars(space+"("+var+")"+space+",(.*)");
-	while(std::regex_search(vars,match,rgxVars)){
-		inst.push_back(match[1]);
-		vars=match[2];
-	}
-	std::regex rgxVar(space+"("+var+")"+space);
-	if(std::regex_search(vars,match,rgxVar)) inst.push_back(match[1]);
-	else return false;
-	inst.push_back(expr);
+	for(const auto s : separate(vars))
+		if(std::regex_search(s,std::regex(var)))
+			params.push_back(s);
+		else return false;
 	return true;
 }
 
-bool replaceVars(std::string& expr, const std::map<const std::string, float> env){
-	std::vector<std::string> tokens=separate(expr);
-	std::regex rgx(var), rgxF(func);
-	expr.clear();
-	for(auto t : tokens){
-		if(!std::regex_search(t,rgx) || std::regex_search(t,rgxF)){
-			expr+=" "+t;
-			continue;
-		}
-		if(env.find(t)!=env.end())
-			expr+=" "+std::to_string(env.at(t));
-		else return false;
+static bool envContains(const std::string& s,
+	const std::map<const std::string, std::pair<std::vector<std::string>,std::string>>& envF){
+	return envF.find(s)!=envF.end();
+}
+
+bool exprIsFunc(const std::string& expr, int& params,
+	const std::map<const std::string, std::pair<std::vector<std::string>,std::string>>& envF){
+	unsigned i;
+	const std::vector<std::string> tokens = separate(expr);
+	if(std::regex_search(tokens[0],std::regex("sin|cos|tan|sqrt|exp|log"))){
+		if(tokens.size()>1) return false;
+		params=1;//2-tokens.size();
+	} 
+	else if(std::regex_search(tokens[0],std::regex("pow|hypot"))){
+		if(tokens.size()>2) return false;
+		params=3-tokens.size();
+	}
+	else if(tokens[0]=="lerp"){
+		if(tokens.size()>3) return false;
+		params=4-tokens.size();
+	}
+	else if(tokens[0]=="polynome"){
+		if(tokens.size()<2) return false;
+		if(tokens.size()>(unsigned)std::stoi(tokens[1])+2) return false;
+		params=std::stoi(tokens[1])+3 - tokens.size();
+	}else if(envContains(tokens[0],envF)){
+		if(tokens.size()>envF.at(tokens[0]).first.size()) return false;
+		params= envF.at(tokens[0]).first.size()+1-tokens.size();
+	}else return false;
+	for(i= 1; i<tokens.size(); i++){
+		if(std::regex_search(tokens[i],std::regex(func)))
+			return false;
+		if(envContains(tokens[i],envF))
+			return false;
 	}
 	return true;
 }
