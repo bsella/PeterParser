@@ -1,5 +1,6 @@
 pi= 3.1415926;
 s = sin
 c x = s (x + pi/2)
-cos 3
 c 3
+cos 3
+

@@ -35,19 +35,17 @@ private:
 	};
 	/**Liste d'instructions à executer*/
 	std::vector<Instruction> instructions;
-
-	/**Execution d'une instruction*/
-	void execute(Instruction inst);
-
+	
 	/**Environnement qui associe le nom d'une variable à
 	un nombre (réel)*/
 	std::map<const std::string, float> envVar;
-
-	void replaceFunc(std::string& expr);
-	bool replaceVars(std::string& expr,const std::vector<std::string>& ignore);
-
 	std::map<const std::string,
 			 std::pair<std::vector<std::string>,std::string>> envFun;
+
+	/**Execution d'une instruction*/
+	void execute(Instruction inst);
+	void replaceFunc(std::string& expr);
+	bool replaceVars(std::string& expr,const std::vector<std::string>& ignore);
 };
 /**Recevoir des chaines de caractères et les transormer
 en instructions du programme. Ces chaines de caractères

@@ -71,11 +71,6 @@ bool defFun(const std::string& text, std::vector<std::string>& params, std::stri
 	return true;
 }
 
-static bool envContains(const std::string& s,
-	const std::map<const std::string, std::pair<std::vector<std::string>,std::string>>& envF){
-	return envF.find(s)!=envF.end();
-}
-
 bool exprIsFunc(const std::string& expr, int& params,
 	const std::map<const std::string, std::pair<std::vector<std::string>,std::string>>& envF){
 	unsigned i;
@@ -96,14 +91,14 @@ bool exprIsFunc(const std::string& expr, int& params,
 		if(tokens.size()<2) return false;
 		if(tokens.size()>(unsigned)std::stoi(tokens[1])+2) return false;
 		params=std::stoi(tokens[1])+3 - tokens.size();
-	}else if(envContains(tokens[0],envF)){
+	}else if(envF.find(tokens[0])!=envF.end()){
 		if(tokens.size()>envF.at(tokens[0]).first.size()) return false;
 		params= envF.at(tokens[0]).first.size()+1-tokens.size();
 	}else return false;
 	for(i= 1; i<tokens.size(); i++){
 		if(std::regex_search(tokens[i],std::regex(func)))
 			return false;
-		if(envContains(tokens[i],envF))
+		if(envF.find(tokens[0])!=envF.end())
 			return false;
 	}
 	return true;
